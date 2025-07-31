@@ -1,1 +1,0 @@
-cmd_/home/you/linux/IMX6ULL/Linux_Drivers/2_led/led.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/you/linux/IMX6ULL/Linux_Drivers/2_led/led.ko /home/you/linux/IMX6ULL/Linux_Drivers/2_led/led.o /home/you/linux/IMX6ULL/Linux_Drivers/2_led/led.mod.o

@@ -1,0 +1,29 @@
+# 忽略所有文件
+*
+
+
+
+# 保留配置文件
+!.gitignore
+!.vscode
+!.vscode/*
+
+# 保留 .c .ko 文件
+!*.c
+!*.ko
+!**/*.c
+!**/*.o
+
+
+*.mod.c
+
+# 保留 Makefile
+!Makefile
+
+# 保留子目录下的 Makefile
+!*/Makefile
+
+# 保留软链接文件
+!imx6ull-alientek-emmc.dts
+!imx6ull-alientek-emmc.dtb
+!zImage
