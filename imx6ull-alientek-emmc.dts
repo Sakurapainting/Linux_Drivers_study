@@ -170,6 +170,13 @@
 		beep-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
+	key {
+		compatible = "alientek,key";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_key>;
+		key-gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
 };
 
 &cpu0 {
@@ -335,6 +342,14 @@
 				MX6UL_PAD_GPIO1_IO03__GPIO1_IO03	0x10b0
 			>;
 		};
+		
+		/*you key*/
+		pinctrl_key: keygrp{
+			fsl,pins = <
+				MX6UL_PAD_UART1_CTS_B__GPIO1_IO18	0xF080
+			>;
+		};
+
 
 		pinctrl_csi1: csi1grp {
 			fsl,pins = <
