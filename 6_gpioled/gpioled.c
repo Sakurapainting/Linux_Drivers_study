@@ -10,9 +10,14 @@
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #include <linux/slab.h>
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
 
 #define GPIOLED_CNT     1
 #define GPIOLED_NAME    "gpioled"
+
+#define LEDON  1
+#define LEDOFF 0
 
 struct gpioled_dev{
     struct cdev cdev;      // 字符设备结构体
@@ -22,6 +27,7 @@ struct gpioled_dev{
     dev_t devid;
     int major;
     int minor;
+    int led_gpio;
 };
 
 struct gpioled_dev gpioled;
@@ -37,8 +43,26 @@ static int gpioled_release(struct inode *inode, struct file *file) {
 }
 
 static ssize_t gpioled_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos) {
-    // struct gpioled_dev *dev = (struct gpioled_dev *)file->private_data;
+    int ret = 0;
+    u8 databuf[1];
+    struct gpioled_dev *dev = (struct gpioled_dev *)file->private_data;
 
+    ret = copy_from_user(databuf, buf, count); // 从用户空间复制数据到内核空间
+    if (ret < 0) {
+        printk(KERN_ERR "Failed to copy data from user space\n");
+        return -EFAULT;
+    }
+
+    if(databuf[0] == LEDON) {
+        gpio_set_value(dev->led_gpio, 0); // 打开LED
+        printk(KERN_INFO "LED is ON\n");
+    } else if(databuf[0] == LEDOFF) {
+        gpio_set_value(dev->led_gpio, 1); // 关闭LED
+        printk(KERN_INFO "LED is OFF\n");
+    } else {
+        printk(KERN_ERR "Invalid command, use 0 to turn off LED and 1 to turn on LED\n");
+        return -EINVAL;
+    }
     return 0;
 }
 
@@ -91,8 +115,49 @@ static int __init gpioled_init(void){
         goto fail_device;
     }
 
+    // node
+    gpioled.nd = of_find_node_by_path("/gpioled"); // find in dts /gpioled
+    if (!gpioled.nd) {
+        ret = -EINVAL;
+        goto fail_findnd;
+    }
+
+    // led-gpios
+    gpioled.led_gpio = of_get_named_gpio(gpioled.nd, "led-gpios", 0);
+    if(gpioled.led_gpio < 0) {
+        printk("get led-gpios failed\n");
+        ret = -EINVAL;
+        goto fail_findnd;
+    }
+
+    printk(KERN_INFO "gpioled: led_gpio = %d\n", gpioled.led_gpio);
+
+    // request gpio
+    ret = gpio_request(gpioled.led_gpio, "led-gpio");
+    if(ret) {      // 非零即失败
+        printk(KERN_ERR "gpioled: request gpio %d failed\n", gpioled.led_gpio);
+        ret = -EBUSY; // 设备忙
+        goto fail_request;
+    }
+
+    // 设置GPIO为输出模式
+    ret = gpio_direction_output(gpioled.led_gpio, 1); // 默认led关闭
+    if(ret) {
+
+        goto fail_setoutput;
+    }
+
+    // 设置GPIO为低电平
+    gpio_set_value(gpioled.led_gpio, 0); 
+
     return 0;
 
+fail_setoutput:
+    gpio_free(gpioled.led_gpio); // 释放GPIO
+fail_request:
+    of_node_put(gpioled.nd); // 释放设备树节点引用
+fail_findnd:
+    device_destroy(gpioled.class, gpioled.devid); // 销毁设备
 fail_device:
     class_destroy(gpioled.class);
 fail_class:
@@ -104,7 +169,10 @@ fail_devid:
 }
 
 static void __exit gpioled_exit(void){
+    gpio_set_value(gpioled.led_gpio, 1); // 关闭LED
 
+    gpio_free(gpioled.led_gpio); // 释放GPIO
+    of_node_put(gpioled.nd); // 释放设备树节点引用
     device_destroy(gpioled.class, gpioled.devid); // 销毁设备
     class_destroy(gpioled.class); // 销毁设备类
     cdev_del(&gpioled.cdev); // 删除字符设备
