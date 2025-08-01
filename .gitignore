@@ -6,14 +6,15 @@
 !.vscode
 !.vscode/*
 
+!*.dts
+!*.dtb
+!*.sh
+!*.md
+
 !*.c
 !*.ko
-!**/*.c
 *.mod.c
 
 !Makefile
-!*/Makefile
 
-!imx6ull-alientek-emmc.dts
-!imx6ull-alientek-emmc.dtb
 !zImage
