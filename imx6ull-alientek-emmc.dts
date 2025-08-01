@@ -145,7 +145,7 @@
 	alphaled {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible ="alientek, alphaled";
+		compatible ="alientek,alphaled";
 		status = "okay";
 		reg = < 0x020c406c 0x04	/*ccm_ccgr1_base*/
 				0x020e0068 0x04 /*sw_mux_gpio1_io03_base*/
@@ -156,10 +156,18 @@
 	};
 
 	gpioled {
-		compatible = "alientek, gpioled";
+		compatible = "alientek,gpioled";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_gpioled>;
 		led-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
+		status = "okay";
+	};
+
+	beep {
+		compatible = "alientek,beep";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_beep>;
+		beep-gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
 };
@@ -314,7 +322,15 @@
 			>;
 		};
 
+		/*you led*/
 		pinctrl_gpioled: ledgrp{
+			fsl,pins = <
+				MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x10b0
+			>;
+		};
+
+		/*you beep*/
+		pinctrl_beep: beepgrp{
 			fsl,pins = <
 				MX6UL_PAD_GPIO1_IO03__GPIO1_IO03	0x10b0
 			>;
