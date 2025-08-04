@@ -12,6 +12,7 @@
         "device.h": "c",
         "module.h": "c",
         "gpio.h": "c",
-        "of_address.h": "c"
+        "of_address.h": "c",
+        "uaccess.h": "c"
     },
 }
